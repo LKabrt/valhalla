@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "baldr/edgeinfo.h"
+#include "midgard/encoded.h"
 
 namespace valhalla {
 namespace mjolnir {
@@ -17,6 +18,10 @@ void write_way_edges(const std::unordered_map<uint64_t, std::vector<EdgeAndDirec
     ways_file << way.first;
     for (auto edge : way.second) {
       ways_file << "," << (uint32_t)edge.forward << "," << (uint64_t)edge.edgeid;
+      
+      // Encode the shape into a single string
+      std::string encoded_shape = midgard::encode(edge.shape);
+      ways_file << "," << encoded_shape;
     }
     ways_file << std::endl;
   }
@@ -56,9 +61,21 @@ collect_way_edges(baldr::GraphReader& reader, const std::string& filename) {
         continue;
       }
 
-      // Get the way Id and store edge information
-      uint64_t wayid = tile->edgeinfo(edge).wayid();
-      ways_edges[wayid].push_back({edge->forward(), edge_id});
+      // Get the edge info which contains the shape
+      auto edgeinfo = tile->edgeinfo(edge);
+      
+      // Get the way Id
+      uint64_t wayid = edgeinfo.wayid();
+      
+      // Get the shape of the edge
+      auto shape = edgeinfo.shape();
+      
+      // Create and store edge information with shape
+      EdgeAndDirection ed;
+      ed.forward = edge->forward();
+      ed.edgeid = edge_id;
+      ed.shape = shape;
+      ways_edges[wayid].push_back(ed);
     }
   }
   if (!filename.empty()) {

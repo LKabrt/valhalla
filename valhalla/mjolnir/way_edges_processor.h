@@ -8,6 +8,7 @@
 
 #include "baldr/graphid.h"
 #include "baldr/graphreader.h"
+#include "midgard/pointll.h"
 
 namespace valhalla {
 namespace mjolnir {
@@ -16,6 +17,7 @@ namespace mjolnir {
 struct EdgeAndDirection {
   bool forward;
   baldr::GraphId edgeid;
+  std::vector<midgard::PointLL> shape;
 };
 
 /**
